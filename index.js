@@ -14,6 +14,7 @@ app.use(cors());
 app.get("/api/get-coin", async (req, res) => {
   try {
     const address = req.query.address || "0xb5330c936723d19954035e23a20570b511f47636"; // WalletConnect
+    //env 
     const apiKey = process.env.ZORA_API_KEY;
 
     if (!apiKey) {
