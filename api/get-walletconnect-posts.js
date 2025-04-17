@@ -2,22 +2,26 @@ import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import { base } from "viem/chains";
 
 export default async function handler(req, res) {
-  // ✅ CORS headers
+  // Always set CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // ✅ Handle preflight
+  // Handle preflight OPTIONS
   if (req.method === "OPTIONS") {
     return res.status(204).end();
   }
 
   try {
     const ZORA_API_KEY = process.env.ZORA_API_KEY;
+    if (!ZORA_API_KEY) {
+      throw new Error("ZORA_API_KEY is not defined");
+    }
+
     setApiKey(ZORA_API_KEY);
 
     const coinData = await getCoin({
-      address: "0xb5330c936723d19954035e23a20570b511f47636", // WalletConnect
+      address: "0xb5330c936723d19954035e23a20570b511f47636",
       chain: base.id,
     });
 
@@ -31,7 +35,8 @@ export default async function handler(req, res) {
 
     res.status(200).json({ posts: simplifiedPosts });
   } catch (err) {
-    console.error("Zora fetch error:", err);
-    res.status(500).json({ error: "Internal server error", message: err.message });
+    console.error("Zora fetch error:", err.message);
+    // CORS-safe error response
+    res.status(500).json({ error: "Server error", message: err.message });
   }
 }
