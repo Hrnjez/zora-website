@@ -2,6 +2,7 @@
   "type": "module",
   "dependencies": {
     "@zoralabs/coins-sdk": "0.0.8",
-    "viem": "^2.21.55"
+    "viem": "^2.21.55",
+    "@vercel/node": "^3.0.7"
   }
 }
