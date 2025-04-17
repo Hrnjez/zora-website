@@ -1,9 +1,10 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { getOnchainCoinDetails } from "@zoralabs/coins-sdk";
 import { createPublicClient, http } from "viem";
-import { base } from "viem/chains";
+import { zora } from "viem/chains";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -20,8 +21,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const publicClient = createPublicClient({
-      chain: base,
-      transport: http("https://mainnet.base.org"), // Change if needed
+      chain: zora,
+      transport: http("https://rpc.zora.energy"),
     });
 
     const details = await getOnchainCoinDetails({
@@ -34,14 +35,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       address: details.address,
       name: details.name,
       symbol: details.symbol,
-      marketCap: details.marketCap.toString(),
-      liquidity: details.liquidity.toString(),
+      marketCap: details.marketCap?.toString() || null,
+      liquidity: details.liquidity?.toString() || null,
       payoutRecipient: details.payoutRecipient,
       owners: details.owners,
       balance: details.balance?.toString() || null,
     });
   } catch (err: any) {
-    console.error("Function error:", err); // <- this will help in logs
-    return res.status(500).json({ error: "Something went wrong", details: err.message });
+    console.error("Function error:", err);
+    return res.status(500).json({
+      error: "Function failed",
+      message: err.message,
+    });
   }
 }
