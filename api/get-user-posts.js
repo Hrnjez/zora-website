@@ -1,25 +1,22 @@
 export default async function handler(req, res) {
-  // ✅ Always send CORS headers
+  // CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // ✅ Handle OPTIONS preflight
+  // Preflight
   if (req.method === "OPTIONS") {
     return res.status(204).end();
   }
 
   try {
     const creator = req.query.creator;
-    if (!creator) {
-      return res.status(400).json({ error: "Missing creator address" });
-    }
+    if (!creator) return res.status(400).json({ error: "Missing creator address" });
 
     const ZORA_API_KEY = process.env.ZORA_API_KEY;
-    if (!ZORA_API_KEY) {
-      throw new Error("Missing ZORA_API_KEY");
-    }
+    if (!ZORA_API_KEY) throw new Error("Missing ZORA_API_KEY");
 
+    // Build GraphQL query
     const graphqlQuery = {
       query: `
         query CoinsByCreator($creator: String!) {
@@ -44,6 +41,7 @@ export default async function handler(req, res) {
       variables: { creator }
     };
 
+    // Send request to Zora
     const response = await fetch("https://api.zora.co/graphql", {
       method: "POST",
       headers: {
@@ -53,12 +51,14 @@ export default async function handler(req, res) {
       body: JSON.stringify(graphqlQuery),
     });
 
+    // Safely parse the response once
+    const rawBody = await response.text();
+
     let json;
     try {
-      json = await response.json();
-    } catch (e) {
-      const raw = await response.text();
-      throw new Error(`Zora response was not valid JSON: ${raw}`);
+      json = JSON.parse(rawBody);
+    } catch {
+      throw new Error(`Zora response not valid JSON: ${rawBody}`);
     }
 
     const tokens = json?.data?.zora20Tokens || [];
@@ -76,10 +76,10 @@ export default async function handler(req, res) {
 
     res.status(200).json({ posts });
   } catch (err) {
-    console.error("Error in /get-user-posts:", err.message);
+    console.error("Error in get-user-posts:", err.message);
     res.status(500).json({
       error: "Server error",
-      message: err.message || "Unknown error",
+      message: err.message,
     });
   }
 }
