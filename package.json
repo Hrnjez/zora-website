@@ -1,0 +1,4 @@
+"dependencies": {
+  "@zoralabs/coins-sdk": "^0.1.5", // or latest
+  "viem": "^1.22.3"
+}
