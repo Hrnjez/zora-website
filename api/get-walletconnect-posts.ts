@@ -1,8 +1,11 @@
-import { getCoin } from "@zoralabs/coins-sdk";
+import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import { base } from "viem/chains";
 
 export default async function handler(req, res) {
   try {
+    // Set your Zora API key securely
+    setApiKey('zorasdk_eFql2RXc9H9trDB6wE8g8oYeKky0vuvvE-zJu-baYNI');
+
     const coinData = await getCoin({
       address: "0xb5330c936723d19954035e23a20570b511f47636", // WalletConnect coin address
       chain: base.id,
