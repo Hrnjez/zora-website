@@ -1,51 +1,50 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import { getOnchainCoinDetails } from "@zoralabs/coins-sdk";
-import { createPublicClient, http } from "viem";
+import { createPublicClient, http, formatEther } from "viem";
 import { zora } from "viem/chains";
+import { erc20Abi } from 'viem';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
+  if (req.method === "OPTIONS") return res.status(200).end();
 
   const { address, user } = req.query;
 
   if (!address || typeof address !== "string") {
-    return res.status(400).json({ error: "Missing or invalid token address." });
+    return res.status(400).json({ error: "Missing token address" });
   }
 
-  try {
-    const publicClient = createPublicClient({
-      chain: zora,
-      transport: http("https://rpc.zora.energy"),
-    });
+  const publicClient = createPublicClient({
+    chain: zora,
+    transport: http("https://rpc.zora.energy"),
+  });
 
-    const details = await getOnchainCoinDetails({
-      coin: address,
-      user: typeof user === "string" ? user : undefined,
-      publicClient,
-    });
+  try {
+    const [name, symbol, totalSupply, balance] = await Promise.all([
+      publicClient.readContract({ address, abi: erc20Abi, functionName: "name" }),
+      publicClient.readContract({ address, abi: erc20Abi, functionName: "symbol" }),
+      publicClient.readContract({ address, abi: erc20Abi, functionName: "totalSupply" }),
+      user && typeof user === 'string'
+        ? publicClient.readContract({
+            address,
+            abi: erc20Abi,
+            functionName: "balanceOf",
+            args: [user],
+          })
+        : Promise.resolve(null)
+    ]);
 
     return res.status(200).json({
-      address: details.address,
-      name: details.name,
-      symbol: details.symbol,
-      marketCap: details.marketCap?.toString() || null,
-      liquidity: details.liquidity?.toString() || null,
-      payoutRecipient: details.payoutRecipient,
-      owners: details.owners,
-      balance: details.balance?.toString() || null,
+      address,
+      name,
+      symbol,
+      totalSupply: totalSupply?.toString(),
+      balance: balance ? balance.toString() : null
     });
   } catch (err: any) {
-    console.error("Function error:", err);
-    return res.status(500).json({
-      error: "Function failed",
-      message: err.message,
-    });
+    console.error(err);
+    return res.status(500).json({ error: "Something went wrong", details: err.message });
   }
 }
