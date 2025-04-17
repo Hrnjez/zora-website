@@ -20,13 +20,14 @@ export default async function handler(req, res) {
       limit: 50,
     });
 
+    console.log("Zora raw response:", JSON.stringify(response, null, 2));
+
     const tokens = response?.data?.zora20Tokens;
 
-    if (!tokens || !tokens.edges) {
-      throw new Error("Zora response missing token list");
+    if (!tokens || !Array.isArray(tokens.edges)) {
+      throw new Error("Token list is missing or malformed in response");
     }
 
-    // Send the full zora20Tokens object (includes edges, pageInfo, count)
     res.status(200).json(tokens);
   } catch (err) {
     console.error("Zora fetch error:", err);
