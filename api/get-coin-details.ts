@@ -1,10 +1,17 @@
-// /api/get-coin-details.ts
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { getOnchainCoinDetails } from "@zoralabs/coins-sdk";
 import { createPublicClient, http } from "viem";
 import { base } from "viem/chains";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   const { address, user } = req.query;
 
   if (!address || typeof address !== "string") {
@@ -14,7 +21,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const publicClient = createPublicClient({
       chain: base,
-      transport: http("https://mainnet.base.org"), // replace with your own RPC if needed
+      transport: http("https://mainnet.base.org"), // Use your own RPC if needed
     });
 
     const details = await getOnchainCoinDetails({
