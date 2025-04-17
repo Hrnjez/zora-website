@@ -14,18 +14,22 @@ export default async function handler(req, res) {
 
     setApiKey(ZORA_API_KEY);
 
-    // ✅ Use getCoins and filter by creator address
-    const result = await getCoins({
-      creator: "0x029405220dd920dd19fcdee7d23b88465514cbb3", // The address you provided
+    const response = await getCoins({
+      creator: "0x029405220dd920dd19fcdee7d23b88465514cbb3",
       chain: base.id,
       limit: 50,
     });
 
-    const tokens = result?.data;
+    const tokens = response?.data?.zora20Tokens;
 
+    if (!tokens || !tokens.edges) {
+      throw new Error("Zora response missing token list");
+    }
+
+    // Send the full zora20Tokens object (includes edges, pageInfo, count)
     res.status(200).json(tokens);
   } catch (err) {
-    console.error("Zora fetch error:", err.message);
+    console.error("Zora fetch error:", err);
     res.status(500).json({ error: "Server error", message: err.message });
   }
 }
