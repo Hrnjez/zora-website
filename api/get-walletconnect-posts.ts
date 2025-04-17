@@ -1,19 +1,19 @@
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import { base } from "viem/chains";
-import { VercelRequest, VercelResponse } from "@vercel/node";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // ✅ Handle preflight CORS
+export default async function handler(req, res) {
+  // ✅ CORS headers
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  // ✅ Handle preflight
   if (req.method === "OPTIONS") {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    res.status(204).end();
-    return;
+    return res.status(204).end();
   }
 
   try {
-    const ZORA_API_KEY = 'zorasdk_eFql2RXc9H9trDB6wE8g8oYeKky0vuvvE-zJu-baYNI';
+    const ZORA_API_KEY = process.env.ZORA_API_KEY;
     setApiKey(ZORA_API_KEY);
 
     const coinData = await getCoin({
@@ -29,11 +29,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       timestamp: node.timestamp,
     }));
 
-    res.setHeader("Access-Control-Allow-Origin", "*");
     res.status(200).json({ posts: simplifiedPosts });
   } catch (err) {
     console.error("Zora fetch error:", err);
-    res.status(500).json({ error: "Failed to fetch posts" });
+    res.status(500).json({ error: "Internal server error", message: err.message });
   }
 }
-
