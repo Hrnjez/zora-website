@@ -1,8 +1,10 @@
 export default async function handler(req, res) {
+  // ✅ Always send CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
+  // ✅ Handle OPTIONS preflight
   if (req.method === "OPTIONS") {
     return res.status(204).end();
   }
@@ -18,46 +20,52 @@ export default async function handler(req, res) {
       throw new Error("Missing ZORA_API_KEY");
     }
 
+    const graphqlQuery = {
+      query: `
+        query CoinsByCreator($creator: String!) {
+          zora20Tokens(where: { creator: $creator }) {
+            name
+            symbol
+            zoraComments {
+              edges {
+                node {
+                  comment
+                  timestamp
+                  userAddress
+                  userProfile {
+                    handle
+                  }
+                }
+              }
+            }
+          }
+        }
+      `,
+      variables: { creator }
+    };
+
     const response = await fetch("https://api.zora.co/graphql", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-API-KEY": ZORA_API_KEY,
       },
-      body: JSON.stringify({
-        query: `
-          query CoinsByCreator($creator: String!) {
-            zora20Tokens(where: { creator: $creator }) {
-              name
-              symbol
-              zoraComments {
-                edges {
-                  node {
-                    comment
-                    timestamp
-                    userAddress
-                    userProfile {
-                      handle
-                    }
-                  }
-                }
-              }
-            }
-          }
-        `,
-        variables: {
-          creator,
-        },
-      }),
+      body: JSON.stringify(graphqlQuery),
     });
 
-    const json = await response.json();
+    let json;
+    try {
+      json = await response.json();
+    } catch (e) {
+      const raw = await response.text();
+      throw new Error(`Zora response was not valid JSON: ${raw}`);
+    }
 
-    const tokens = json.data?.zora20Tokens || [];
+    const tokens = json?.data?.zora20Tokens || [];
 
     const posts = tokens.flatMap(token => {
       const tokenName = token.name || token.symbol || "Unnamed Token";
-      const comments = token.zoraComments?.edges || [];
+      const comments = token?.zoraComments?.edges || [];
       return comments.map(({ node }) => ({
         token: tokenName,
         comment: node.comment,
@@ -68,7 +76,10 @@ export default async function handler(req, res) {
 
     res.status(200).json({ posts });
   } catch (err) {
-    console.error("Error in get-user-posts:", err.message);
-    res.status(500).json({ error: "Server error", message: err.message });
+    console.error("Error in /get-user-posts:", err.message);
+    res.status(500).json({
+      error: "Server error",
+      message: err.message || "Unknown error",
+    });
   }
 }
