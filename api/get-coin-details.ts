@@ -21,7 +21,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const publicClient = createPublicClient({
       chain: base,
-      transport: http("https://mainnet.base.org"), // Use your own RPC if needed
+      transport: http("https://mainnet.base.org"), // Change if needed
     });
 
     const details = await getOnchainCoinDetails({
@@ -41,6 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       balance: details.balance?.toString() || null,
     });
   } catch (err: any) {
+    console.error("Function error:", err); // <- this will help in logs
     return res.status(500).json({ error: "Something went wrong", details: err.message });
   }
 }
