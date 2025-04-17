@@ -1,13 +1,10 @@
-// api/get-walletconnect-posts.ts
-import { VercelRequest, VercelResponse } from "@vercel/node";
-import { createPublicClient, http } from "viem";
-import { base } from "viem/chains";
 import { getCoin } from "@zoralabs/coins-sdk";
+import { base } from "viem/chains";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req, res) {
   try {
     const coinData = await getCoin({
-      address: "0xb5330c936723d19954035e23a20570b511f47636", // walletconnect coin
+      address: "0xb5330c936723d19954035e23a20570b511f47636", // WalletConnect coin address
       chain: base.id,
     });
 
