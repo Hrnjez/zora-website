@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     setApiKey(ZORA_API_KEY);
 
     const coinData = await getCoin({
-      address: "0xb5330c936723d19954035e23a20570b511f47636",
+      address: "0xd769d56f479e9e72a77bb1523e866a33098feec5",
       chain: base.id,
     });
 
