@@ -1,8 +1,8 @@
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import { base } from "viem/chains";
+import { VercelRequest, VercelResponse } from "@vercel/node";
 
-export default async function handler(req, res) {
-  // ✅ CORS preflight support
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     setApiKey(ZORA_API_KEY);
 
     const coinData = await getCoin({
-      address: "0xb5330c936723d19954035e23a20570b511f47636", // WalletConnect coin
+      address: "0xb5330c936723d19954035e23a20570b511f47636",
       chain: base.id,
     });
 
@@ -28,11 +28,11 @@ export default async function handler(req, res) {
       timestamp: node.timestamp,
     }));
 
-    res.setHeader("Access-Control-Allow-Origin", "*"); // allow Webflow
-    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.status(200).json({ posts: simplifiedPosts });
   } catch (err) {
     console.error("Zora fetch error:", err);
-    res.status(500).json
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+}
+
