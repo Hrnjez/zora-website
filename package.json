@@ -4,6 +4,6 @@
   "type": "module",
   "dependencies": {
     "@zoralabs/coins-sdk": "0.0.2-sdkalpha.1",
-    "viem": "^1.22.3"
+    "viem": "2.21.55"
   }
 }
