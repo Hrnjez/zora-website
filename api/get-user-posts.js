@@ -2,17 +2,21 @@ import { getCoinsByCreators, setApiKey } from "@zoralabs/coins-sdk";
 import { base } from "viem/chains";
 
 export default async function handler(req, res) {
+  // ✅ Always set CORS headers, even on errors
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
+  // ✅ Handle preflight OPTIONS request
   if (req.method === "OPTIONS") {
     return res.status(204).end();
   }
 
   try {
     const ZORA_API_KEY = process.env.ZORA_API_KEY;
-    if (!ZORA_API_KEY) throw new Error("Missing ZORA_API_KEY");
+    if (!ZORA_API_KEY) {
+      throw new Error("Missing ZORA_API_KEY");
+    }
 
     const creator = req.query.creator;
     if (!creator) {
@@ -26,7 +30,11 @@ export default async function handler(req, res) {
       chain: base.id,
     });
 
-    const tokens = response.data?.zora20Tokens || [];
+    if (!response?.data?.zora20Tokens) {
+      return res.status(200).json({ posts: [] });
+    }
+
+    const tokens = response.data.zora20Tokens;
 
     const posts = tokens.flatMap((token) => {
       const tokenName = token.name || token.symbol || "Unnamed Token";
@@ -41,7 +49,11 @@ export default async function handler(req, res) {
 
     res.status(200).json({ posts });
   } catch (err) {
-    console.error("Fetch user posts error:", err.message);
-    res.status(500).json({ error: "Server error", message: err.message });
+    console.error("Fetch error in /get-user-posts:", err.message);
+    // ✅ Ensure CORS headers still apply on error
+    res.status(500).json({
+      error: "Server error",
+      message: err.message || "Unknown error",
+    });
   }
 }
