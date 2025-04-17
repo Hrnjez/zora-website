@@ -15,9 +15,8 @@ export default async function handler(req, res) {
     setApiKey(ZORA_API_KEY);
 
     const response = await getCoins({
-      creator: "0x029405220dd920dd19fcdee7d23b88465514cbb3",
+      creator: "0x6977d841d7b013c9f45ea20c2d79d5380460a0d4",
       chain: base.id,
-      limit: 50,
     });
 
     console.log("Zora raw response:", JSON.stringify(response, null, 2));
