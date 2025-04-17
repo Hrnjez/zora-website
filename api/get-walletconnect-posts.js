@@ -25,12 +25,12 @@ export default async function handler(req, res) {
 
     // Fetch the full coin data
     const coinData = await getCoin({
-      address: "0x6aa5cbbb9cd38960d5b633b7f1a1ff7fbb53f2f2", // Replace with desired token address
+      address: "0xeb52aa8b4bec001e4dbb3f7013f9af6a3f11f631", // Replace with desired token address
       chain: base.id, // Chain ID for Base (you can change this to other supported chains)
     });
 
     // Return the full response
-    res.status(200).json(coinData);
+    res.status(200).json(coinData.data);
   } catch (err) {
     console.error("Zora fetch error:", err.message);
     res.status(500).json({ error: "Server error", message: err.message });
