@@ -36,16 +36,25 @@ export default async function handler(req, res) {
 
     const tokens = response.data.zora20Tokens;
 
-    const posts = tokens.flatMap((token) => {
-      const tokenName = token.name || token.symbol || "Unnamed Token";
-      const comments = token.zoraComments?.edges || [];
-      return comments.map(({ node }) => ({
-        token: tokenName,
-        comment: node.comment,
-        user: node.userProfile?.handle || node.userAddress,
-        timestamp: node.timestamp,
-      }));
+  const posts = [];
+
+for (const token of tokens) {
+  const tokenName = token.name || token.symbol || "Unnamed Token";
+  const comments = token?.zoraComments?.edges || [];
+
+  for (const comment of comments) {
+    const node = comment.node;
+    if (!node?.comment) continue;
+
+    posts.push({
+      token: tokenName,
+      comment: node.comment,
+      user: node.userProfile?.handle || node.userAddress,
+      timestamp: node.timestamp,
     });
+  }
+}
+
 
     res.status(200).json({ posts });
   } catch (err) {
