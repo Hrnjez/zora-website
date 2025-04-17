@@ -28,8 +28,15 @@ export default async function handler(req, res) {
     }
 
     res.status(200).json(tokens);
-  } catch (err) {
-    console.error("Zora fetch error:", err);
-    res.status(500).json({ error: "Server error", message: err.message });
-  }
+ } catch (err) {
+  console.error("🔥 FULL ERROR OBJECT:");
+  console.error(err);
+  res.status(500).json({
+    error: "Server error",
+    raw: err,
+    message: err?.message || "Unknown error",
+    stack: err?.stack || null
+  });
+}
+
 }
