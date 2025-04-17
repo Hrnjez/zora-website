@@ -44,7 +44,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       balance: balance ? balance.toString() : null
     });
   } catch (err: any) {
-    console.error(err);
-    return res.status(500).json({ error: "Something went wrong", details: err.message });
-  }
+  console.error("Function error:", err);
+  return res.status(500).json({
+    error: "Function failed",
+    message: err.message || "Unknown error",
+    stack: err.stack || null,
+  });
+}
 }
