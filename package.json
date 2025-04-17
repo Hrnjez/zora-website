@@ -1,7 +1,7 @@
 {
   "type": "module",
   "dependencies": {
-    "@zoralabs/coins-sdk": "0.0.17",
+    "@zoralabs/coins-sdk": "0.0.8",
     "viem": "^1.16.0"
   }
 }
