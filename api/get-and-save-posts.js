@@ -2,7 +2,7 @@ import { getProfile, getProfileBalances, setApiKey } from "@zoralabs/coins-sdk";
 
 let cache = null;
 let lastFetch = 0;
-const REVALIDATE_INTERVAL = 60 * 1000; // 1 minute
+const REVALIDATE_INTERVAL = 10 * 1000; // 1 minute
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
