@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
    const response = await getCoins({
     where: {
-      creator: ["0x029405220dd920dd19fcdee7d23b88465514cbb3"],
+      creator: ["0xd8fbc75dfc8562e4807cb5e08ac1abdbe723be9e"],
     },
     chain: base.id,
     limit: 20,
