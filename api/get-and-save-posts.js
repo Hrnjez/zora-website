@@ -1,3 +1,5 @@
+import { getProfile, getProfileBalances, setApiKey } from "@zoralabs/coins-sdk";
+
 let cache = null;
 let lastFetch = 0;
 const REVALIDATE_INTERVAL = 60 * 1000; // 1 minute
@@ -15,7 +17,7 @@ export default async function handler(req, res) {
 
     const { address } = req.query;
     if (!address) {
-      return res.status(400).json({ error: "Missing ?address=0x..." });
+      return res.status(400).json({ error: "Missing `?address=0x...` query param" });
     }
 
     const now = Date.now();
@@ -26,24 +28,35 @@ export default async function handler(req, res) {
       return res.status(200).json(cache);
     }
 
+    // Set API key for Zora SDK
     setApiKey(ZORA_API_KEY);
 
+    // Fetch profile
     const profileResponse = await getProfile({ identifier: address });
-    const balancesResponse = await getProfileBalances({ identifier: address, count: 99 });
+
+    // Fetch balances
+    const balancesResponse = await getProfileBalances({
+      identifier: address,
+      count: 99,
+    });
 
     const responseData = {
       profile: profileResponse?.data?.profile || null,
       balances: balancesResponse?.data?.profile?.coinBalances || null,
     };
 
-    // Cache result
+    // Save to cache
     cache = responseData;
     lastFetch = now;
 
-    console.log("✅ Fetched fresh data");
-    return res.status(200).json(responseData);
+    console.log("✅ Fresh data fetched and cached");
+    res.status(200).json(responseData);
   } catch (err) {
     console.error("Zora API error:", err);
-    return res.status(500).json({ error: "Server error", message: err.message });
+    res.status(500).json({
+      error: "Server error",
+      message: err.message,
+      stack: err.stack,
+    });
   }
 }
