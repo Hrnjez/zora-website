@@ -1,4 +1,4 @@
-import { setApiKey, getProfile, getCreatedTokens } from "@zoralabs/coins-sdk";
+import { getProfile, getCreatedTokens, setApiKey } from "@zoralabs/coins-sdk";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -18,34 +18,27 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing `?handle=boysclub` query param" });
     }
 
-    const profileRes = await getProfile({ identifier: handle });
-    const profileId = profileRes?.data?.profile?.id;
+    // Step 1: Get profile to retrieve the internal ID
+    const profileResponse = await getProfile({ identifier: handle });
+    const profileId = profileResponse?.data?.profile?.id;
 
     if (!profileId) {
-      return res.status(404).json({ error: "Profile not found for handle: " + handle });
+      return res.status(404).json({ error: `Profile not found for handle: ${handle}` });
     }
 
-    const allTokens = [];
-    let cursor = null;
-    let hasNextPage = true;
+    // Step 2: Get created tokens (1 page, up to 99)
+    const createdResponse = await getCreatedTokens({
+      profileId: profileId,
+      sort: "CREATED_AT_DESC",
+      limit: 99,
+    });
 
-    while (hasNextPage) {
-      const tokensRes = await getCreatedTokens({
-        profileId,
-        sort: "CREATED_AT_DESC",
-        cursor,
-        limit: 50,
-      });
+    const tokens = createdResponse?.data?.profile?.createdTokens?.nodes || [];
 
-      const tokens = tokensRes?.data?.profile?.createdTokens?.nodes || [];
-      allTokens.push(...tokens);
-
-      const pageInfo = tokensRes?.data?.profile?.createdTokens?.pageInfo;
-      hasNextPage = pageInfo?.hasNextPage;
-      cursor = pageInfo?.endCursor;
-    }
-
-    res.status(200).json({ tokens: allTokens });
+    res.status(200).json({
+      profile: profileResponse?.data?.profile || null,
+      tokens: tokens,
+    });
   } catch (err) {
     console.error("Zora profile fetch error:", err);
     res.status(500).json({
