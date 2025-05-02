@@ -1,4 +1,4 @@
-import { getProfile, getProfileBalances, setApiKey } from "@zoralabs/coins-sdk";
+import { setApiKey, getProfile } from "@zoralabs/coins-sdk";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -13,26 +13,42 @@ export default async function handler(req, res) {
 
     setApiKey(ZORA_API_KEY);
 
-    const { address } = req.query;
-    if (!address) {
-      return res.status(400).json({ error: "Missing `?address=0x...` query param" });
+    const { handle } = req.query;
+    if (!handle) {
+      return res.status(400).json({ error: "Missing `?handle=boysclub` query param" });
     }
 
-    // Fetch profile
-    const profileResponse = await getProfile({ identifier: address });
+    // Get profile using the @handle (e.g. "boysclub")
+    const profileResponse = await getProfile({ identifier: handle });
+    const profile = profileResponse?.data?.profile;
 
-    // Fetch balances (first page only)
-    const balancesResponse = await getProfileBalances({
-      identifier: address,
-      count: 99,
-    });
+    if (!profile?.id) {
+      return res.status(404).json({ error: "Profile not found for handle: " + handle });
+    }
 
-    res.status(200).json({
-      profile: profileResponse?.data?.profile || null,
-      balances: balancesResponse?.data?.profile?.coinBalances || null,
-    });
+    const allTokens = [];
+    let cursor = null;
+    let hasNextPage = true;
+
+    // Pagination loop for created tokens
+    while (hasNextPage) {
+      const result = await profile.createdTokens({
+        limit: 50,
+        cursor: cursor,
+        sort: "CREATED_AT_DESC"
+      });
+
+      const tokens = result?.data?.profile?.createdTokens?.nodes || [];
+      const pageInfo = result?.data?.profile?.createdTokens?.pageInfo;
+
+      allTokens.push(...tokens);
+      hasNextPage = pageInfo?.hasNextPage;
+      cursor = pageInfo?.endCursor;
+    }
+
+    res.status(200).json({ created: allTokens });
   } catch (err) {
-    console.error("Zora profile fetch error:", err);
+    console.error("Zora SDK error:", err);
     res.status(500).json({
       error: "Server error",
       message: err.message,
