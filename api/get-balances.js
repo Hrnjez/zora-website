@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
     while (hasNextPage) {
       const tokensRes = await getCreatedTokens({
-        profileId: profileId,
+        profileId,
         sort: "CREATED_AT_DESC",
         cursor,
         limit: 50,
