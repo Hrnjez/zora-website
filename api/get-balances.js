@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     // Fetch balances (first page only)
     const balancesResponse = await getProfileBalances({
       identifier: address,
-      count: 50,
+      count: 99,
     });
 
     res.status(200).json({
