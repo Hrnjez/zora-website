@@ -1,4 +1,4 @@
-import { getProfile, setApiKey } from "@zoralabs/coins-sdk";
+import { getProfile, getCoinsCreatedByProfile, setApiKey } from "@zoralabs/coins-sdk";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -20,25 +20,36 @@ export default async function handler(req, res) {
 
     const handlesList = handles.split(',');
     
-    // Fetch all profiles in parallel
-    const profilePromises = handlesList.map(handle => 
-      getProfile({ identifier: handle.trim() })
-    );
+    // Fetch profiles + their created coins in parallel
+    const profilePromises = handlesList.map(async (handle) => {
+      const trimmedHandle = handle.trim();
+      
+      // Get profile
+      const profileResponse = await getProfile({ identifier: trimmedHandle });
+      
+      // Get coins created by this profile (their posts)
+      const coinsResponse = await getCoinsCreatedByProfile({
+        identifier: trimmedHandle,
+        count: 3, // Get last 3 posts
+      });
+      
+      return {
+        handle: trimmedHandle,
+        profile: profileResponse?.data?.profile || null,
+        posts: coinsResponse?.data?.profile?.coinsCreated?.edges || []
+      };
+    });
     
     const results = await Promise.all(profilePromises);
-    
-    const profiles = results.map((response, index) => ({
-      handle: handlesList[index],
-      profile: response?.data?.profile || null
-    }));
 
-    res.status(200).json({ profiles });
+    res.status(200).json({ profiles: results });
     
   } catch (err) {
     console.error("Zora profiles fetch error:", err);
     res.status(500).json({ 
       error: "Server error", 
-      message: err.message 
+      message: err.message,
+      stack: err.stack
     });
   }
 }
