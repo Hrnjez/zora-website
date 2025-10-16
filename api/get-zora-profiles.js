@@ -7,9 +7,9 @@ import { getProfile, getProfileCoins, setApiKey } from "@zoralabs/coins-sdk";
  * =========================
  */
 const ALLOWED_ORIGINS = [
-  "https://app-landing-page-da9939-9d27738bf8d68dc.webflow.io/",
-  "https://yourdomain.com",
-  "https://staging.yourdomain.com",
+  "https://app-landing-page-da9939-9d27738bf8d68dc.webflow.io",
+ // "https://yourdomain.com",
+  //"https://staging.yourdomain.com",
 ]; // ← zameni svojim domenima (Webflow/Vercel)
 
 const MAX_HANDLES = 20;        // max kreatora po zahtevu (sprečava ekstremni fan-out)
