@@ -1,25 +1,24 @@
-// /pages/api/zora-profiles.js
 import { getProfile, getProfileCoins, setApiKey } from "@zoralabs/coins-sdk";
 
 /**
  * =========================
- * Config — prilagodi po potrebi
+ * Config 
  * =========================
  */
 const ALLOWED_ORIGINS = [
   "https://app-landing-page-da9939-9d27738bf8d68dc.webflow.io",
   "https://app.zora.co",
   "https://app-landing-page-da9939.webflow.io",
-]; // ← zameni svojim domenima (Webflow/Vercel)
+]; 
 
-const MAX_HANDLES = 20;        // max kreatora po zahtevu (sprečava ekstremni fan-out)
-const URL_MAX_LENGTH = 2000;   // zaštita od predugačkog GET URL-a
-const CONCURRENCY = 6;         // 5–8 je zdravo: ravnomerno pritiska Zora API
-const TIMEOUT_MS = 8000;       // hard timeout po Zora pozivu
-const RETRIES = 2;             // ukupno pokušaja = RETRIES + 1
-const BACKOFF_BASE_MS = 250;   // expo backoff + jitter
-const CACHE_TTL_MS = 90_000;   // per-handle in-memory LRU (~90s)
-const CACHE_MAX_ENTRIES = 1000;
+const MAX_HANDLES = 20;        // Max creators per request (prevents extreme fan-out)
+const URL_MAX_LENGTH = 2000;   // Protection against excessively long GET URLs
+const CONCURRENCY = 6;         // 5–8 is optimal: balanced API load on Zora
+const TIMEOUT_MS = 8000;       // Hard timeout per Zora API request
+const RETRIES = 2;             // Total attempts = RETRIES + 1
+const BACKOFF_BASE_MS = 250;   // Exponential backoff base + jitter
+const CACHE_TTL_MS = 90_000;   // In-memory LRU per handle (~90s)
+const CACHE_MAX_ENTRIES = 1000; // Max cache entries before eviction
 
 /**
  * =========================
